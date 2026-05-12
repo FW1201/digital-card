@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="吳奇名片">
+  <meta name="theme-color" content="#0d1117">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <title>吳奇 · Kevin Wu</title>
+
+  <!-- qrcode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ── Claude Design System Tokens ── */
+    :root {
+      --claude-primary:       #cc785c;
+      --claude-canvas:        #faf9f5;
+      --claude-ink:           #141413;
+      --claude-dark:          #181715;
+      --claude-dark-elevated: #252320;
+      --claude-dark-soft:     #1f1e1b;
+      --claude-body:          #3d3d3a;
+      --claude-body-muted:    #6c6a64;
+      --claude-muted-soft:    #8e8b82;
+      --claude-on-dark:       #faf9f5;
+      --claude-on-dark-soft:  #a09d96;
+      --claude-teal:          #5db8a6;
+      --claude-border:        #e6dfd8;
+      --rounded-sm:           6px;
+      --rounded-md:           8px;
+      --rounded-lg:           12px;
+      --rounded-xl:           16px;
+      --rounded-pill:         9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--claude-dark);
+      font-family: -apple-system, 'Noto Sans TC', Inter, sans-serif;
+    }
+
+    /* ── Card Scene ── */
+    .card-scene {
+      position: fixed;
+      inset: 0;
+      perspective: 1200px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-inner.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* ── FRONT ── */
+    .card-front {
+      background: var(--claude-canvas);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 20px) 32px env(safe-area-inset-bottom, 32px);
+      text-align: center;
+    }
+
+    .front-top-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--claude-primary);
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      background: var(--claude-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 20px rgba(204,120,92,0.35);
+    }
+
+    .name-zh {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--claude-ink);
+      letter-spacing: 0.05em;
+      line-height: 1;
+    }
+
+    .name-en {
+      font-size: 14px;
+      color: var(--claude-muted-soft);
+      letter-spacing: 0.15em;
+      margin-top: 6px;
+      margin-bottom: 20px;
+    }
+
+    .divider {
+      width: 32px;
+      height: 2px;
+      background: var(--claude-primary);
+      border-radius: var(--rounded-pill);
+      margin-bottom: 20px;
+    }
+
+    .titles {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .title-item {
+      font-size: 14px;
+      color: var(--claude-body-muted);
+      letter-spacing: 0.03em;
+      line-height: 1.5;
+    }
+
+    .title-item strong {
+      color: var(--claude-body);
+      font-weight: 600;
+    }
+
+    .flip-hint {
+      position: absolute;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: var(--claude-primary);
+      letter-spacing: 0.1em;
+      opacity: 0.8;
+      animation: pulse-hint 2.5s ease-in-out infinite;
+      white-space: nowrap;
+    }
+
+    @keyframes pulse-hint {
+      0%, 100% { opacity: 0.5; transform: translateX(-50%) translateY(0); }
+      50%       { opacity: 1;   transform: translateX(-50%) translateY(3px); }
+    }
+
+    /* ── BACK ── */
+    .card-back {
+      background: var(--claude-dark);
+      padding: calc(env(safe-area-inset-top, 0px) + 24px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Role cards */
+    .role-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .role-card {
+      background: var(--claude-dark-elevated);
+      border-radius: var(--rounded-lg);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .role-icon { font-size: 18px; flex-shrink: 0; }
+
+    .role-info { display: flex; flex-direction: column; gap: 2px; }
+
+    .role-label {
+      font-size: 9px;
+      color: var(--claude-body-muted);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .role-desc {
+      font-size: 12px;
+      color: var(--claude-on-dark-soft);
+    }
+
+    /* Divider */
+    .section-divider {
+      height: 1px;
+      background: var(--claude-dark-elevated);
+      border-radius: var(--rounded-pill);
+      margin: 2px 0;
+    }
+
+    /* QR Code area */
+    .qr-main {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .qr-item {
+      background: var(--claude-dark-elevated);
+      border-radius: var(--rounded-xl);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .qr-box {
+      width: 64px;
+      height: 64px;
+      background: #fff;
+      border-radius: var(--rounded-md);
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-box canvas,
+    .qr-box img {
+      width: 60px !important;
+      height: 60px !important;
+    }
+
+    .qr-meta { display: flex; flex-direction: column; gap: 4px; }
+
+    .qr-platform {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .qr-platform.fb    { color: var(--claude-primary); }
+    .qr-platform.web   { color: var(--claude-teal); }
+
+    .qr-url {
+      font-size: 11px;
+      color: var(--claude-body-muted);
+    }
+
+    /* Expand button */
+    .expand-btn {
+      border: 1px solid var(--claude-dark-elevated);
+      border-radius: var(--rounded-pill);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      background: transparent;
+      transition: border-color 0.2s;
+    }
+
+    .expand-btn:active { background: var(--claude-dark-elevated); }
+
+    .expand-label {
+      font-size: 11px;
+      color: var(--claude-body-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .expand-arrow {
+      font-size: 11px;
+      color: var(--claude-primary);
+      display: inline-block;
+      transition: transform 0.3s ease;
+    }
+
+    .expand-arrow.open { transform: rotate(180deg); }
+
+    /* Social drawer */
+    .social-drawer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .social-drawer.open { max-height: 300px; }
+
+    .social-grid {
+      background: var(--claude-dark-soft);
+      border: 1px solid var(--claude-dark-elevated);
+      border-radius: var(--rounded-xl);
+      padding: 14px 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .social-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .social-qr-box {
+      width: 56px;
+      height: 56px;
+      background: #fff;
+      border-radius: var(--rounded-md);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .social-qr-box canvas,
+    .social-qr-box img {
+      width: 52px !important;
+      height: 52px !important;
+    }
+
+    .social-name {
+      font-size: 10px;
+      color: var(--claude-on-dark-soft);
+      letter-spacing: 0.05em;
+    }
+
+    /* Email */
+    .email-row {
+      text-align: center;
+      font-size: 11px;
+      color: var(--claude-body-muted);
+      padding: 2px 0;
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card-scene" id="cardScene">
+  <div class="card-inner" id="cardInner">
+
+    <!-- ══ FRONT ══ -->
+    <div class="card-front">
+      <div class="front-top-bar"></div>
+
+      <div class="avatar">吳</div>
+
+      <div class="name-zh">吳奇</div>
+      <div class="name-en">Kevin Wu</div>
+
+      <div class="divider"></div>
+
+      <div class="titles">
+        <div class="title-item"><strong>AI × 教育</strong> 講師</div>
+        <div class="title-item">Google 認證培訓師（GCT）</div>
+        <div class="title-item">數位敘事力期刊 <strong>主編</strong></div>
+      </div>
+
+      <div class="flip-hint">輕點翻面 ▾</div>
+    </div>
+
+    <!-- ══ BACK ══ -->
+    <div class="card-back">
+
+      <!-- Role cards -->
+      <div class="role-cards">
+        <div class="role-card">
+          <span class="role-icon">🎓</span>
+          <div class="role-info">
+            <span class="role-label">教師・研究者</span>
+            <span class="role-desc">NTNU 碩士・國語文合格教師</span>
+          </div>
+        </div>
+        <div class="role-card">
+          <span class="role-icon">🛠</span>
+          <div class="role-info">
+            <span class="role-label">開發者</span>
+            <span class="role-desc">Chrome Ext × 6・Skills × 77+</span>
+          </div>
+        </div>
+        <div class="role-card">
+          <span class="role-icon">📝</span>
+          <div class="role-info">
+            <span class="role-label">主編</span>
+            <span class="role-desc">數位敘事力期刊・134 場・309.5 hr</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Main QR codes -->
+      <div class="qr-main">
+        <div class="qr-item">
+          <div class="qr-box" id="qr-fb"></div>
+          <div class="qr-meta">
+            <span class="qr-platform fb">📘 粉絲專頁</span>
+            <span class="qr-url">數位敘事力期刊</span>
+          </div>
+        </div>
+        <div class="qr-item">
+          <div class="qr-box" id="qr-web"></div>
+          <div class="qr-meta">
+            <span class="qr-platform web">🌐 個人網頁</span>
+            <span class="qr-url">jdn2023.com</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expand -->
+      <div class="expand-btn" id="expandBtn" onclick="toggleDrawer(event)">
+        <span class="expand-label">更多連結</span>
+        <span class="expand-arrow" id="expandArrow">▾</span>
+      </div>
+
+      <!-- Social drawer -->
+      <div class="social-drawer" id="socialDrawer">
+        <div class="social-grid">
+          <div class="social-item">
+            <div class="social-qr-box" id="qr-threads"></div>
+            <span class="social-name">Threads</span>
+          </div>
+          <div class="social-item">
+            <div class="social-qr-box" id="qr-ig"></div>
+            <span class="social-name">Instagram</span>
+          </div>
+          <div class="social-item">
+            <div class="social-qr-box" id="qr-yt"></div>
+            <span class="social-name">YouTube</span>
+          </div>
+          <div class="social-item">
+            <div class="social-qr-box" id="qr-li"></div>
+            <span class="social-name">LinkedIn</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="email-row">✉ kevinwu@gtrainerdemo.jdn2023.com</div>
+
+    </div><!-- /card-back -->
+  </div><!-- /card-inner -->
+</div><!-- /card-scene -->
+
+<script>
+  // ── Flip ──
+  const inner = document.getElementById('cardInner');
+  const expandBtn = document.getElementById('expandBtn');
+
+  document.getElementById('cardScene').addEventListener('click', function(e) {
+    // Don't flip when tapping expand button or its children
+    if (expandBtn.contains(e.target)) return;
+    inner.classList.toggle('flipped');
+  });
+
+  // ── Expand/Collapse ──
+  function toggleDrawer(e) {
+    e.stopPropagation();
+    const drawer = document.getElementById('socialDrawer');
+    const arrow  = document.getElementById('expandArrow');
+    drawer.classList.toggle('open');
+    arrow.classList.toggle('open');
+  }
+
+  // ── QR Code generation ──
+  const urls = {
+    'qr-fb':      'https://www.facebook.com/Journal.of.Digital.Narrative/',
+    'qr-web':     'https://www.jdn2023.com/',
+    'qr-threads': 'https://www.threads.net/@journal_of_digital_narrative',
+    'qr-ig':      'https://www.instagram.com/journal_of_digital_narrative/',
+    'qr-yt':      'https://www.youtube.com/@Journal_of_Digital_Narrative',
+    'qr-li':      'https://www.linkedin.com/in/chi-k-wu/'
+  };
+
+  const mainSize   = 64;
+  const socialSize = 56;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Object.entries(urls).forEach(([id, url]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const isMain = id === 'qr-fb' || id === 'qr-web';
+      const size   = isMain ? mainSize : socialSize;
+      try {
+        new QRCode(el, {
+          text: url,
+          width: size,
+          height: size,
+          colorDark: '#141413',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch(err) {
+        console.warn('QR failed for', id, err);
+      }
+    });
+  });
+</script>
+</body>
+</html>

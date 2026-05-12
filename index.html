@@ -103,19 +103,14 @@
     }
 
     .avatar {
-      width: 88px;
-      height: 88px;
-      background: var(--claude-primary);
+      width: 96px;
+      height: 96px;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 42px;
-      font-weight: 700;
-      color: #fff;
+      object-fit: cover;
+      object-position: center 18%;
       margin-bottom: 24px;
-      box-shadow: 0 6px 20px rgba(204,120,92,0.35);
+      box-shadow: 0 6px 20px rgba(204,120,92,0.35), 0 0 0 3px var(--claude-primary);
+      flex-shrink: 0;
     }
 
     .name-zh {
@@ -159,6 +154,12 @@
     .title-item strong {
       color: var(--claude-body);
       font-weight: 600;
+    }
+
+    .title-sub {
+      font-size: 13px;
+      color: var(--claude-muted-soft);
+      font-weight: 400;
     }
 
     .flip-hint {
@@ -381,7 +382,7 @@
     <div class="card-front">
       <div class="front-top-bar"></div>
 
-      <div class="avatar">吳</div>
+      <img class="avatar" src="avatar.jpg" alt="吳奇">
 
       <div class="name-zh">吳奇</div>
       <div class="name-en">Kevin Wu</div>
@@ -391,7 +392,9 @@
       <div class="titles">
         <div class="title-item"><strong>AI × 教育</strong> 講師</div>
         <div class="title-item">Google 認證培訓師（GCT）</div>
+        <div class="title-item">Gemini Academy 臺灣教育專場 <strong>講師</strong></div>
         <div class="title-item">數位敘事力期刊 <strong>主編</strong></div>
+        <div class="title-item">2025–2026 AI 教育素養論壇 <strong>策展人</strong><span class="title-sub">（翻轉教育平台 聯辦）</span></div>
       </div>
 
       <div class="flip-hint">輕點翻面 ▾</div>
